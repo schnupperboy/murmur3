@@ -29,10 +29,10 @@ extern crate murmur3;
 use murmur3::{seeded, unseeded};
 
 fn main() {
-	let hash_seeded = seeded("abcd", 1234);
+	let hash_seeded = seeded("abcd".as_bytes(), 1234);
 	assert_eq!(hash_seeded, 893017187);
 
-	let hash_unseeded = unseeded("abcd");
+	let hash_unseeded = unseeded("abcd".as_bytes());
 	assert_eq!(hash_unseeded, 1139631978);
 }
 ```
