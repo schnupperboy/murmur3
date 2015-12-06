@@ -176,7 +176,6 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-<span id="137">137</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Cursor</span>;
 <span class='kw'>use</span> <span class='ident'>byteorder</span>::{<span class='ident'>LittleEndian</span>, <span class='ident'>ReadBytesExt</span>};
@@ -195,20 +194,19 @@
 <span class='doccomment'>/// # Examples</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// ```</span>
-<span class='doccomment'>/// use murmur3_32::seeded;</span>
+<span class='doccomment'>/// use murmur3::seeded;</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// let murmur32_hash = seeded(&quot;abcd&quot;, 1234);</span>
+<span class='doccomment'>/// let murmur32_hash = seeded(&quot;abcd&quot;.as_bytes(), 1234);</span>
 <span class='doccomment'>/// assert_eq!(murmur32_hash, 893017187);</span>
 <span class='doccomment'>/// ```</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>seeded</span>(<span class='ident'>key</span>: <span class='kw-2'>&amp;</span><span class='ident'>str</span>, <span class='ident'>seed</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>seeded</span>(<span class='ident'>data</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>], <span class='ident'>seed</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seed</span>;
-    <span class='kw'>let</span> <span class='ident'>key_bytes</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>] <span class='op'>=</span> <span class='ident'>key</span>.<span class='ident'>as_bytes</span>();
-    <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>key_bytes</span>.<span class='ident'>len</span>();
+    <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>data</span>.<span class='ident'>len</span>();
 
     <span class='kw'>for</span> <span class='ident'>byte_index</span> <span class='kw'>in</span> (<span class='number'>0</span>..<span class='ident'>len</span>).<span class='ident'>step_by</span>(<span class='number'>4</span>) {
         <span class='kw'>let</span> <span class='ident'>remaining_bytes</span> <span class='op'>=</span> <span class='ident'>len</span> <span class='op'>-</span> <span class='ident'>byte_index</span>;
         <span class='kw'>if</span> <span class='ident'>remaining_bytes</span> <span class='op'>&gt;=</span> <span class='number'>4</span> {
-            <span class='kw'>let</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>key_bytes</span>[<span class='ident'>byte_index</span>..<span class='ident'>byte_index</span> <span class='op'>+</span> <span class='number'>4</span>];
+            <span class='kw'>let</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>byte_index</span>..<span class='ident'>byte_index</span> <span class='op'>+</span> <span class='number'>4</span>];
 
             <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>_process_chunk</span>(<span class='ident'>hash</span>, <span class='kw-2'>&amp;</span><span class='ident'>buf</span>);
 
@@ -217,7 +215,7 @@
 
         } <span class='kw'>else</span> {
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>4</span>];
-            <span class='ident'>buf</span>.<span class='ident'>clone_from_slice</span>(<span class='kw-2'>&amp;</span><span class='ident'>key_bytes</span>[<span class='ident'>byte_index</span>..<span class='ident'>len</span>]);
+            <span class='ident'>buf</span>.<span class='ident'>clone_from_slice</span>(<span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>byte_index</span>..<span class='ident'>len</span>]);
 
             <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>_process_chunk</span>(<span class='ident'>hash</span>, <span class='kw-2'>&amp;</span><span class='ident'>buf</span>);
         }
@@ -238,13 +236,13 @@
 <span class='doccomment'>/// # Examples</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// ```</span>
-<span class='doccomment'>/// use murmur3_32::unseeded;</span>
+<span class='doccomment'>/// use murmur3::unseeded;</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// let murmur32_hash = unseeded(&quot;abcd&quot;);</span>
+<span class='doccomment'>/// let murmur32_hash = unseeded(&quot;abcd&quot;.as_bytes());</span>
 <span class='doccomment'>/// assert_eq!(murmur32_hash, 1139631978);</span>
 <span class='doccomment'>/// ```</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>unseeded</span>(<span class='ident'>key</span>: <span class='kw-2'>&amp;</span><span class='ident'>str</span>) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
-    <span class='ident'>seeded</span>(<span class='ident'>key</span>, <span class='number'>0</span>)
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>unseeded</span>(<span class='ident'>data</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
+    <span class='ident'>seeded</span>(<span class='ident'>data</span>, <span class='number'>0</span>)
 }
 
 <span class='kw'>fn</span> <span class='ident'>_process_chunk</span>(<span class='ident'>hash</span>: <span class='ident'>u32</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
@@ -260,59 +258,59 @@
 
 <span class='attribute'>#[<span class='ident'>test</span>]</span>
 <span class='kw'>fn</span> <span class='ident'>seeded_test</span>() {
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh&quot;</span>,
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh&quot;</span>.<span class='ident'>as_bytes</span>(),
                           <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1618858773</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefgh&quot;</span>, <span class='number'>1234</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefgh&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>4037461305</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefg&quot;</span>, <span class='number'>1234</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefg&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1113025207</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefg&quot;</span>, <span class='number'>5678</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefg&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>5678</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1081589395</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='number'>1234</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcd&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>893017187</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;ab1&quot;</span>, <span class='number'>1234</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;ab1&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>672282314</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;a b&quot;</span>, <span class='number'>1234</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;a b&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>629887092</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;a&quot;</span>, <span class='number'>1234</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;a&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1374314456</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;&quot;</span>, <span class='number'>1234</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>254590987</span>);
 }
 
 <span class='attribute'>#[<span class='ident'>test</span>]</span>
 <span class='kw'>fn</span> <span class='ident'>unseeded_test</span>() {
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh&quot;</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>3788670109</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefgh&quot;</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefgh&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1239272644</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefg&quot;</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefg&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>2285673222</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcd&quot;</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcd&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1139631978</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;ab1&quot;</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;ab1&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1110413313</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;a b&quot;</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;a b&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1033158525</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;a&quot;</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;a&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1009084850</span>);
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;&quot;</span>);
+    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;&quot;</span>.<span class='ident'>as_bytes</span>());
     <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>0</span>);
 }
 </pre>
