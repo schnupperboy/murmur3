@@ -66,9 +66,19 @@ pub fn unseeded(data: &[u8]) -> u32 {
     seeded(data, 0)
 }
 
+#[cfg(target_endian="big")]
+macro_rules! read_u32 {
+    ($buf_reader:expr) => ($buf_reader.read_u32::<BigEndian>().unwrap());
+}
+
+#[cfg(target_endian="little")]
+macro_rules! read_u32 {
+    ($buf_reader:expr) => ($buf_reader.read_u32::<LittleEndian>().unwrap());
+}
+
 fn _process_chunk(hash: u32, buf: &[u8]) -> u32 {
     let mut buf_reader = Cursor::new(buf);
-    let mut chunk = buf_reader.read_u32::<LittleEndian>().unwrap();
+    let mut chunk = read_u32!(buf_reader);
 
     chunk = chunk.wrapping_mul(C1);
     chunk = (chunk << R1) | (chunk >> (32 - R1));
