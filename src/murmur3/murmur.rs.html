@@ -9,6 +9,7 @@
 
     <title>murmur.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -176,7 +177,48 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
 </pre><pre class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>hash</span>::{<span class='ident'>Hasher</span>, <span class='ident'>Hash</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Cursor</span>;
 <span class='kw'>use</span> <span class='ident'>byteorder</span>::{<span class='ident'>LittleEndian</span>, <span class='ident'>ReadBytesExt</span>};
 
@@ -189,65 +231,87 @@
 <span class='kw'>const</span> <span class='ident'>N</span>: <span class='ident'>u32</span> <span class='op'>=</span> <span class='number'>0xe6546b64</span>;
 
 
-<span class='doccomment'>/// MurmurHash3 (32 bit, seeded)</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// # Examples</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// ```</span>
-<span class='doccomment'>/// use murmur3::seeded;</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// let murmur32_hash = seeded(&quot;abcd&quot;.as_bytes(), 1234);</span>
-<span class='doccomment'>/// assert_eq!(murmur32_hash, 893017187);</span>
-<span class='doccomment'>/// ```</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>seeded</span>(<span class='ident'>data</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>], <span class='ident'>seed</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seed</span>;
-    <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>data</span>.<span class='ident'>len</span>();
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Murmur3Hasher</span> {
+    <span class='ident'>hash</span>: <span class='ident'>u32</span>,
+    <span class='ident'>len</span>: <span class='ident'>usize</span>,
+    <span class='ident'>carry</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u8</span><span class='op'>&gt;</span>,
+    <span class='ident'>seed</span>: <span class='ident'>u32</span>
+}
 
-    <span class='kw'>for</span> <span class='ident'>byte_index</span> <span class='kw'>in</span> (<span class='number'>0</span>..<span class='ident'>len</span>).<span class='ident'>step_by</span>(<span class='number'>4</span>) {
-        <span class='kw'>let</span> <span class='ident'>remaining_bytes</span> <span class='op'>=</span> <span class='ident'>len</span> <span class='op'>-</span> <span class='ident'>byte_index</span>;
-        <span class='kw'>if</span> <span class='ident'>remaining_bytes</span> <span class='op'>&gt;=</span> <span class='number'>4</span> {
-            <span class='kw'>let</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>byte_index</span>..<span class='ident'>byte_index</span> <span class='op'>+</span> <span class='number'>4</span>];
+<span class='kw'>impl</span> <span class='ident'>Murmur3Hasher</span> {
+    <span class='doccomment'>/// Creates a new `Murmur3Hasher`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>seed</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='ident'>Murmur3Hasher</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>state</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span> {
+            <span class='ident'>hash</span>: <span class='ident'>seed</span>,
+            <span class='ident'>len</span>: <span class='number'>0</span>,
+            <span class='ident'>carry</span>: <span class='ident'>Vec</span>::<span class='ident'>new</span>(),
+            <span class='ident'>seed</span>: <span class='ident'>seed</span>
+        };
 
-            <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>_process_chunk</span>(<span class='ident'>hash</span>, <span class='kw-2'>&amp;</span><span class='ident'>buf</span>);
+        <span class='ident'>state</span>.<span class='ident'>reset</span>();
+        <span class='ident'>state</span>
+    }
 
-            <span class='ident'>hash</span> <span class='op'>=</span> (<span class='ident'>hash</span> <span class='op'>&lt;&lt;</span> <span class='ident'>R2</span>) <span class='op'>|</span> (<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> (<span class='number'>32</span> <span class='op'>-</span> <span class='ident'>R2</span>));
-            <span class='ident'>hash</span> <span class='op'>=</span> (<span class='ident'>hash</span>.<span class='ident'>wrapping_mul</span>(<span class='ident'>M</span>)).<span class='ident'>wrapping_add</span>(<span class='ident'>N</span>);
+    <span class='kw'>fn</span> <span class='ident'>reset</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
+        <span class='self'>self</span>.<span class='ident'>hash</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>seed</span>;
+        <span class='self'>self</span>.<span class='ident'>len</span> <span class='op'>=</span> <span class='number'>0</span>;
+        <span class='self'>self</span>.<span class='ident'>carry</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>new</span>();
+    }
+}
 
-        } <span class='kw'>else</span> {
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>4</span>];
-            <span class='ident'>buf</span>.<span class='ident'>clone_from_slice</span>(<span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>byte_index</span>..<span class='ident'>len</span>]);
+<span class='kw'>impl</span> <span class='ident'>Hasher</span> <span class='kw'>for</span> <span class='ident'>Murmur3Hasher</span> {
 
-            <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>_process_chunk</span>(<span class='ident'>hash</span>, <span class='kw-2'>&amp;</span><span class='ident'>buf</span>);
+    <span class='kw'>fn</span> <span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>new_data</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) {
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;new data: {:?}&quot;</span>, <span class='ident'>new_data</span>);
+
+        <span class='self'>self</span>.<span class='ident'>len</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>len</span> <span class='op'>+</span> <span class='ident'>new_data</span>.<span class='ident'>len</span>();
+
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>carry</span>.<span class='ident'>clone</span>();
+        <span class='ident'>data</span>.<span class='ident'>append</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>new_data</span>.<span class='ident'>to_vec</span>());
+
+        <span class='kw'>for</span> <span class='ident'>chunk</span> <span class='kw'>in</span> <span class='ident'>data</span>.<span class='ident'>chunks</span>(<span class='number'>4</span>) {
+            <span class='kw'>if</span> <span class='ident'>chunk</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>4</span> {
+                <span class='self'>self</span>.<span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>_process_chunk</span>(<span class='self'>self</span>.<span class='ident'>hash</span>, <span class='ident'>chunk</span>);
+
+                <span class='self'>self</span>.<span class='ident'>hash</span> <span class='op'>=</span> (<span class='self'>self</span>.<span class='ident'>hash</span> <span class='op'>&lt;&lt;</span> <span class='ident'>R2</span>) <span class='op'>|</span> (<span class='self'>self</span>.<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> (<span class='number'>32</span> <span class='op'>-</span> <span class='ident'>R2</span>));
+                <span class='self'>self</span>.<span class='ident'>hash</span> <span class='op'>=</span> (<span class='self'>self</span>.<span class='ident'>hash</span>.<span class='ident'>wrapping_mul</span>(<span class='ident'>M</span>)).<span class='ident'>wrapping_add</span>(<span class='ident'>N</span>);
+            } <span class='kw'>else</span> {
+                <span class='self'>self</span>.<span class='ident'>carry</span> <span class='op'>=</span> <span class='ident'>chunk</span>.<span class='ident'>to_vec</span>();
+            }
         }
     }
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>u32</span>);
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> <span class='number'>16</span>);
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span>.<span class='ident'>wrapping_mul</span>(<span class='number'>0x85ebca6b</span>);
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> <span class='number'>13</span>);
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span>.<span class='ident'>wrapping_mul</span>(<span class='number'>0xC2b2ae35</span>);
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> <span class='number'>16</span>);
+    <span class='kw'>fn</span> <span class='ident'>finish</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>u64</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>hash</span>;
 
-    <span class='kw'>return</span> <span class='ident'>hash</span>;
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0u8</span>; <span class='number'>4</span>];
+        <span class='ident'>buf</span>.<span class='ident'>clone_from_slice</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>.<span class='ident'>carry</span>);
+        <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>_process_chunk</span>(<span class='ident'>hash</span>, <span class='kw-2'>&amp;</span><span class='ident'>buf</span>);
+
+        <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='self'>self</span>.<span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>u32</span>);
+        <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> <span class='number'>16</span>);
+        <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span>.<span class='ident'>wrapping_mul</span>(<span class='number'>0x85ebca6b</span>);
+        <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> <span class='number'>13</span>);
+        <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span>.<span class='ident'>wrapping_mul</span>(<span class='number'>0xC2b2ae35</span>);
+        <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hash</span> <span class='op'>^</span> (<span class='ident'>hash</span> <span class='op'>&gt;&gt;</span> <span class='number'>16</span>);
+
+        <span class='ident'>hash</span> <span class='kw'>as</span> <span class='ident'>u64</span>
+    }
 }
 
-<span class='doccomment'>/// MurmurHash3 (32 bit, unseeded)</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// # Examples</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// ```</span>
-<span class='doccomment'>/// use murmur3::unseeded;</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// let murmur32_hash = unseeded(&quot;abcd&quot;.as_bytes());</span>
-<span class='doccomment'>/// assert_eq!(murmur32_hash, 1139631978);</span>
-<span class='doccomment'>/// ```</span>
-<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>unseeded</span>(<span class='ident'>data</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
-    <span class='ident'>seeded</span>(<span class='ident'>data</span>, <span class='number'>0</span>)
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_endian</span><span class='op'>=</span><span class='string'>&quot;big&quot;</span>)]</span>
+<span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>read_u32</span> {
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>buf_reader</span>:<span class='ident'>expr</span>) <span class='op'>=&gt;</span> (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>buf_reader</span>.<span class='ident'>read_u32</span>::<span class='op'>&lt;</span><span class='ident'>BigEndian</span><span class='op'>&gt;</span>().<span class='ident'>unwrap</span>());
+}
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_endian</span><span class='op'>=</span><span class='string'>&quot;little&quot;</span>)]</span>
+<span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>read_u32</span> {
+    (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>buf_reader</span>:<span class='ident'>expr</span>) <span class='op'>=&gt;</span> (<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>buf_reader</span>.<span class='ident'>read_u32</span>::<span class='op'>&lt;</span><span class='ident'>LittleEndian</span><span class='op'>&gt;</span>().<span class='ident'>unwrap</span>());
 }
 
 <span class='kw'>fn</span> <span class='ident'>_process_chunk</span>(<span class='ident'>hash</span>: <span class='ident'>u32</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>u32</span> {
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf_reader</span> <span class='op'>=</span> <span class='ident'>Cursor</span>::<span class='ident'>new</span>(<span class='ident'>buf</span>);
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>chunk</span> <span class='op'>=</span> <span class='ident'>buf_reader</span>.<span class='ident'>read_u32</span>::<span class='op'>&lt;</span><span class='ident'>LittleEndian</span><span class='op'>&gt;</span>().<span class='ident'>unwrap</span>();
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>chunk</span> <span class='op'>=</span> <span class='macro'>read_u32</span><span class='macro'>!</span>(<span class='ident'>buf_reader</span>);
 
     <span class='ident'>chunk</span> <span class='op'>=</span> <span class='ident'>chunk</span>.<span class='ident'>wrapping_mul</span>(<span class='ident'>C1</span>);
     <span class='ident'>chunk</span> <span class='op'>=</span> (<span class='ident'>chunk</span> <span class='op'>&lt;&lt;</span> <span class='ident'>R1</span>) <span class='op'>|</span> (<span class='ident'>chunk</span> <span class='op'>&gt;&gt;</span> (<span class='number'>32</span> <span class='op'>-</span> <span class='ident'>R1</span>));
@@ -257,61 +321,78 @@
 }
 
 <span class='attribute'>#[<span class='ident'>test</span>]</span>
-<span class='kw'>fn</span> <span class='ident'>seeded_test</span>() {
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh&quot;</span>.<span class='ident'>as_bytes</span>(),
-                          <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1618858773</span>);
+<span class='kw'>fn</span> <span class='ident'>test_progressive_equals_one_shot</span>() {
+    <span class='kw'>let</span> <span class='ident'>data1</span> <span class='op'>=</span> <span class='string'>&quot;abcdefghabcdefghabcdefghabcdefgh&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>data2</span> <span class='op'>=</span> <span class='string'>&quot;abcdefghabcdefghabcdefghabcdefgh&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>data12</span> <span class='op'>=</span> <span class='string'>&quot;abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>expected_hash</span> <span class='op'>=</span> <span class='number'>1618858773</span>;
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefgh&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>4037461305</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>progressive_hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>1234</span>);
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data1</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>progressive_hasher</span>);
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data2</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>progressive_hasher</span>);
+    <span class='kw'>let</span> <span class='ident'>progressive_hash</span> <span class='op'>=</span> <span class='ident'>progressive_hasher</span>.<span class='ident'>finish</span>();
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefg&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1113025207</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>one_shot_hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>1234</span>);
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data12</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>one_shot_hasher</span>);
+    <span class='kw'>let</span> <span class='ident'>one_shot_hash</span> <span class='op'>=</span> <span class='ident'>one_shot_hasher</span>.<span class='ident'>finish</span>();
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcdefg&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>5678</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1081589395</span>);
-
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;abcd&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>893017187</span>);
-
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;ab1&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>672282314</span>);
-
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;a b&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>629887092</span>);
-
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;a&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1374314456</span>);
-
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>seeded</span>(<span class='string'>&quot;&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='number'>1234</span>);
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>254590987</span>);
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>progressive_hash</span>, <span class='ident'>expected_hash</span>);
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>one_shot_hash</span>, <span class='ident'>expected_hash</span>);
 }
 
 <span class='attribute'>#[<span class='ident'>test</span>]</span>
-<span class='kw'>fn</span> <span class='ident'>unseeded_test</span>() {
-    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>3788670109</span>);
+<span class='kw'>fn</span> <span class='ident'>test_unaligned</span>() {
+    <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='string'>&quot;abcde&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>expected_hash</span> <span class='op'>=</span> <span class='number'>3902511862</span>;
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefgh&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1239272644</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>0</span>);
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>hasher</span>);
+    <span class='kw'>let</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hasher</span>.<span class='ident'>finish</span>();
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcdefg&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>2285673222</span>);
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='ident'>expected_hash</span>);
+}
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;abcd&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1139631978</span>);
+<span class='attribute'>#[<span class='ident'>test</span>]</span>
+<span class='kw'>fn</span> <span class='ident'>test_empty_seeded</span>() {
+    <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='string'>&quot;&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>expected_hash</span> <span class='op'>=</span> <span class='number'>254590987</span>;
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;ab1&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1110413313</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>1234</span>);
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>hasher</span>);
+    <span class='kw'>let</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hasher</span>.<span class='ident'>finish</span>();
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;a b&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1033158525</span>);
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='ident'>expected_hash</span>);
+}
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;a&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1009084850</span>);
+<span class='attribute'>#[<span class='ident'>test</span>]</span>
+<span class='kw'>fn</span> <span class='ident'>test_empty_unseeded</span>() {
+    <span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='string'>&quot;&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>expected_hash</span> <span class='op'>=</span> <span class='number'>0</span>;
 
-    <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>unseeded</span>(<span class='string'>&quot;&quot;</span>.<span class='ident'>as_bytes</span>());
-    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>0</span>);
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>0</span>);
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>hasher</span>);
+    <span class='kw'>let</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hasher</span>.<span class='ident'>finish</span>();
+
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='ident'>expected_hash</span>);
+}
+
+<span class='attribute'>#[<span class='ident'>test</span>]</span>
+<span class='kw'>fn</span> <span class='ident'>test_reset</span>() {
+    <span class='kw'>let</span> <span class='ident'>data1</span> <span class='op'>=</span> <span class='string'>&quot;abcd&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>data2</span> <span class='op'>=</span> <span class='string'>&quot;efgh&quot;</span>.<span class='ident'>as_bytes</span>();
+    <span class='kw'>let</span> <span class='ident'>expected_hash1</span> <span class='op'>=</span> <span class='number'>1139631978</span>;
+    <span class='kw'>let</span> <span class='ident'>expected_hash2</span> <span class='op'>=</span> <span class='number'>635154487</span>;
+
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>0</span>);
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data1</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>hasher</span>);
+    <span class='kw'>let</span> <span class='ident'>hash1</span> <span class='op'>=</span> <span class='ident'>hasher</span>.<span class='ident'>finish</span>();
+
+    <span class='ident'>hasher</span>.<span class='ident'>reset</span>();
+    <span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='ident'>data2</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>hasher</span>);
+    <span class='kw'>let</span> <span class='ident'>hash2</span> <span class='op'>=</span> <span class='ident'>hasher</span>.<span class='ident'>finish</span>();
+
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash1</span>, <span class='ident'>expected_hash1</span>);
+    <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash2</span>, <span class='ident'>expected_hash2</span>);
 }
 </pre>
 </section>

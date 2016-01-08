@@ -9,6 +9,7 @@
 
     <title>murmur3 - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -45,9 +46,44 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/murmur3/lib.rs.html#1-8' title='goto source code'>[src]</a></span></h1>
-<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
-<table><tr><td><code>pub use self::murmur::{<a class='fn' href='../murmur3/murmur/fn.seeded.html' title='murmur3::murmur::seeded'>seeded</a>, <a class='fn' href='../murmur3/murmur/fn.unseeded.html' title='murmur3::murmur::unseeded'>unseeded</a>};</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+        </span><a id='src-0' class='srclink' href='../src/murmur3/lib.rs.html#1-45' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This is an implementation of the <code>Hasher</code> trait for the Murmur3 algorithm (32 bit output hashes, Big- and Small-Endian systems supported).</p>
+
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1>
+<p>Hash data of any primitive or custom type (which implements the <code>Hash</code> trait):</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>hash</span>::{<span class='ident'>Hash</span>, <span class='ident'>Hasher</span>};
+<span class='kw'>use</span> <span class='ident'>murmur3</span>::<span class='ident'>Murmur3Hasher</span>;
+
+<span class='kw'>let</span> <span class='ident'>data</span> <span class='op'>=</span> <span class='number'>1234</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>0</span>); <span class='comment'>// Seeded with 0</span>
+<span class='ident'>data</span>.<span class='ident'>hash</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>hasher</span>);
+<span class='kw'>let</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hasher</span>.<span class='ident'>finish</span>();</pre>
+
+<h1 id='notes-for-use-with-t-and-str' class='section-header'><a href='#notes-for-use-with-t-and-str'>Notes for use with <code>[T]</code> and <code>str</code></a></h1>
+<p>In case of <code>[T]</code> or <code>str</code> Rust adds a little magic to the data before hashing it in
+order to prevent hash collisions in some edge cases.</p>
+
+<p>For details see <a href="https://github.com/rust-lang/rust/issues/5257">https://github.com/rust-lang/rust/issues/5257</a>
+and <a href="https://github.com/rust-lang/rust/issues/27108">https://github.com/rust-lang/rust/issues/27108</a>.</p>
+
+<p>Thus to get the expected hash result (without the extra magic added to your data before hashing) from a <code>str</code> or <code>[T]</code>:</p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>hash</span>::{<span class='ident'>Hash</span>, <span class='ident'>Hasher</span>};
+<span class='kw'>use</span> <span class='ident'>murmur3</span>::<span class='ident'>Murmur3Hasher</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>hasher</span> <span class='op'>=</span> <span class='ident'>Murmur3Hasher</span>::<span class='ident'>new</span>(<span class='number'>0</span>);
+<span class='ident'>Hash</span>::<span class='ident'>hash_slice</span>(<span class='string'>&quot;hello world&quot;</span>.<span class='ident'>as_bytes</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>hasher</span>);
+<span class='kw'>let</span> <span class='ident'>hash</span> <span class='op'>=</span> <span class='ident'>hasher</span>.<span class='ident'>finish</span>();
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>hash</span>, <span class='number'>1586663183</span>);</pre>
+
+<p>If interoperability with other Murmur3 implementations is not important
+for you when hashing <code>str</code> or <code>[T]</code>, just use Murmur3Hasher as explained
+above instead of passing a reference to a byte slice to <code>hash_slice()</code>:</p>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>pub use self::<a class='mod'
+                                            href='./murmur/index.html'>murmur</a>::<a class='struct' href='../murmur3/murmur/struct.Murmur3Hasher.html' title='murmur3::murmur::Murmur3Hasher'>Murmur3Hasher</a>;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='mod' href='murmur/index.html'

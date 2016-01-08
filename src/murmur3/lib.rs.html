@@ -9,6 +9,7 @@
 
     <title>lib.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -40,21 +41,95 @@
         </form>
     </nav>
 
-    <section id='main' class="content source"><pre class="line-numbers"><span id="1">1</span>
-<span id="2">2</span>
-<span id="3">3</span>
-<span id="4">4</span>
-<span id="5">5</span>
-<span id="6">6</span>
-<span id="7">7</span>
-<span id="8">8</span>
+    <section id='main' class="content source"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
 </pre><pre class='rust '>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>step_by</span>)]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>clone_from_slice</span>)]</span>
+<span class='doccomment'>/*! This is an implementation of the `Hasher` trait for the Murmur3 algorithm (32 bit output hashes, Big- and Small-Endian systems supported).
 
+# Examples
+Hash data of any primitive or custom type (which implements the `Hash` trait):
+
+```
+use std::hash::{Hash, Hasher};
+use murmur3::Murmur3Hasher;
+
+let data = 1234;
+let mut hasher = Murmur3Hasher::new(0); // Seeded with 0
+data.hash(&amp;mut hasher);
+let hash = hasher.finish();
+```
+
+# Notes for use with `[T]` and `str`
+In case of `[T]` or `str` Rust adds a little magic to the data before hashing it in
+order to prevent hash collisions in some edge cases.
+
+For details see https://github.com/rust-lang/rust/issues/5257
+and https://github.com/rust-lang/rust/issues/27108.
+
+Thus to get the expected hash result (without the extra magic added to your data before hashing) from a `str` or `[T]`:
+
+```
+use std::hash::{Hash, Hasher};
+use murmur3::Murmur3Hasher;
+
+let mut hasher = Murmur3Hasher::new(0);
+Hash::hash_slice(&quot;hello world&quot;.as_bytes(), &amp;mut hasher);
+let hash = hasher.finish();
+
+assert_eq!(hash, 1586663183);
+```
+
+If interoperability with other Murmur3 implementations is not important
+for you when hashing `str` or `[T]`, just use Murmur3Hasher as explained
+above instead of passing a reference to a byte slice to `hash_slice()`:
+*/</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>byteorder</span>;
 
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>murmur</span>::{<span class='ident'>seeded</span>, <span class='ident'>unseeded</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>murmur</span>::<span class='ident'>Murmur3Hasher</span>;
 
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>murmur</span>;
 </pre>
