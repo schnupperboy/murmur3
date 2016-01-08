@@ -1,6 +1,7 @@
-# Murmur3
+# Murmur3 (32 bit)
 
-[MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash) is a non-cryptographic hash function suitable for general hash-based lookup. Currently only 32-bit hash values are supported.
+[MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash) is a non-cryptographic hash function suitable for general hash-based lookup.
+This crate supports one-shot or progressive hashing of any primitive or custom type (which implements the `Hash` trait) on Big- and Small-Endian systems.
 
 ### Documentation
 
@@ -21,21 +22,21 @@ and this to your crate root:
 extern crate murmur3;
 ```
 
-Here's a simple example that calculates the 32-bit MurmurHash3 for a given &str:
+Here's a simple example that calculates a 32 bit MurmurHash3:
 
 ```rust
 extern crate murmur3;
 
-use murmur3::{seeded, unseeded};
+use std::hash::{Hash, Hasher};
+use murmur3::Murmur3Hasher;
 
-fn main() {
-	let hash_seeded = seeded("abcd".as_bytes(), 1234);
-	assert_eq!(hash_seeded, 893017187);
-
-	let hash_unseeded = unseeded("abcd".as_bytes());
-	assert_eq!(hash_unseeded, 1139631978);
-}
+let data = 1234;
+let mut hasher = Murmur3Hasher::new(0); // Seeded with 0
+data.hash(&mut hasher);
+let hash = hasher.finish();
 ```
+
+For details especially on how to use for `str` and `[T]` data see the documentation.
 
 # License
 
