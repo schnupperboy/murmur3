@@ -1,4 +1,3 @@
-#![feature(clone_from_slice)]
 /*! This is an implementation of the `Hasher` trait for the Murmur3 algorithm (32 bit output hashes, Big- and Small-Endian systems supported).
 
 # Examples

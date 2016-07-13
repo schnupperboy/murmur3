@@ -2,7 +2,6 @@ use std::hash::{Hasher, Hash};
 use std::io::Cursor;
 use byteorder::{LittleEndian, ReadBytesExt};
 
-
 const C1: u32 = 0xcc9e2d51;
 const C2: u32 = 0x1b873593;
 const R1: u32 = 15;
@@ -24,7 +23,7 @@ impl Murmur3Hasher {
         let mut state = Murmur3Hasher {
             hash: seed,
             len: 0,
-            carry: Vec::new(),
+            carry: Vec::with_capacity(4),
             seed: seed
         };
 
@@ -35,7 +34,7 @@ impl Murmur3Hasher {
     fn reset(&mut self) {
         self.hash = self.seed;
         self.len = 0;
-        self.carry = Vec::new();
+        self.carry = Vec::with_capacity(4);
     }
 }
 
